@@ -15,6 +15,7 @@ class SpleeterSeparator:
         """Default constructor.
         :param config: Separator config, defaults to None
         """
+        print("initialized cpu separation" if cpu_separation else "initialized gpu acceleration")
         self.audio_bitrate = f'{bitrate}k'
         self.audio_format = 'mp3'
         self.sample_rate = 44100
