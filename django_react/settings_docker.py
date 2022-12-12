@@ -10,8 +10,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'default')
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY', '')
+YOUTUBE_COOKIE = os.getenv('YOUTUBE_COOKIE', '')
 
 CPU_SEPARATION = os.getenv('CPU_SEPARATION', '1') == '1'
+
+CPU_SEPARATION_SPLEETER = os.getenv('CPU_SEPARATION_SPLEETER', CPU_SEPARATION) == '1'
+CPU_SEPARATION_D3NET = os.getenv('CPU_SEPARATION_D3NET', CPU_SEPARATION) == '1'
+CPU_SEPARATION_DEMUCS = os.getenv('CPU_SEPARATION_DEMUCS', CPU_SEPARATION) == '1'
+CPU_SEPARATION_XUMX = os.getenv('CPU_SEPARATION_XUMX', CPU_SEPARATION) == '1'
 
 ALLOW_ALL_HOSTS = os.getenv('ALLOW_ALL_HOSTS', '0') == '1'
 if ALLOW_ALL_HOSTS:

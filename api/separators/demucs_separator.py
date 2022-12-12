@@ -75,7 +75,7 @@ class DemucsSeparator:
                               num_workers=self.workers)[0]
         raw_sources = raw_sources * ref.std() + ref.mean()
 
-        if not settings.CPU_SEPARATION:
+        if not settings.CPU_SEPARATION_DEMUCS:
             del model
             torch.cuda.empty_cache()
             gc.collect()

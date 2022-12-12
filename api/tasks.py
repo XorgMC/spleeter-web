@@ -24,20 +24,31 @@ from .youtubedl import download_audio, get_file_ext
 This module defines various Celery tasks used for Spleeter Web.
 """
 
-def get_separator(separator: str, separator_args: Dict, bitrate: int, cpu_separation: bool):
+def get_separator(separator: str, separator_args: Dict, bitrate: int, settings):
     """Returns separator object for corresponding source separation model."""
     if separator == 'spleeter':
-        return SpleeterSeparator(cpu_separation, bitrate)
+        return SpleeterSeparator(settings.CPU_SEPARATION_SPLEETER, bitrate)
     elif separator == 'd3net':
-        return D3NetSeparator(cpu_separation, bitrate)
+        return D3NetSeparator(settings.CPU_SEPARATION_D3NET, bitrate)
     elif separator == 'xumx':
         softmask = separator_args['softmask']
         alpha = separator_args['alpha']
         iterations = separator_args['iterations']
-        return XUMXSeparator(cpu_separation, bitrate, softmask, alpha, iterations)
+        return XUMXSeparator(settings.CPU_SEPARATION_XUMX, bitrate, softmask, alpha, iterations)
     else:
         random_shifts = separator_args['random_shifts']
-        return DemucsSeparator(separator, cpu_separation, bitrate, random_shifts)
+        return DemucsSeparator(separator, settings.CPU_SEPARATION_DEMUCS, bitrate, random_shifts)
+
+def get_cpu_separation(separator: str, settings):
+    """Returns separator object for corresponding source separation model."""
+    if separator == 'spleeter':
+        return settings.CPU_SEPARATION_SPLEETER
+    elif separator == 'd3net':
+        return settings.CPU_SEPARATION_D3NET
+    elif separator == 'xumx':
+        return settings.CPU_SEPARATION_XUMX
+    else:
+        return settings.CPU_SEPARATION_DEMUCS
 
 @app.task()
 def create_static_mix(static_mix_id):
@@ -69,7 +80,7 @@ def create_static_mix(static_mix_id):
         pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
         separator = get_separator(static_mix.separator,
                                   static_mix.separator_args,
-                                  static_mix.bitrate, settings.CPU_SEPARATION)
+                                  static_mix.bitrate, settings)
 
         parts = {
             'vocals': static_mix.vocals,
@@ -83,7 +94,8 @@ def create_static_mix(static_mix_id):
         path = static_mix.source_path() if is_local else static_mix.source_url(
         )
 
-        if not settings.CPU_SEPARATION:
+        #if not settings.CPU_SEPARATION:
+        if not get_cpu_separation(static_mix.separator, settings):
             # For GPU separation, do separation in separate process.
             # Otherwise, GPU memory is not automatically freed afterwards
             process_eval = Process(target=separator.create_static_mix,
@@ -163,7 +175,7 @@ def create_dynamic_mix(dynamic_mix_id):
         separator = get_separator(dynamic_mix.separator,
                                   dynamic_mix.separator_args,
                                   dynamic_mix.bitrate,
-                                  settings.CPU_SEPARATION)
+                                  settings)
 
         # Non-local filesystems like S3/Azure Blob do not support source_path()
         is_local = settings.DEFAULT_FILE_STORAGE == 'api.storage.FileSystemStorage'
@@ -171,7 +183,8 @@ def create_dynamic_mix(dynamic_mix_id):
         ) if is_local else dynamic_mix.source_url()
 
         # Do separation
-        if not settings.CPU_SEPARATION:
+        #if not settings.CPU_SEPARATION:
+        if not get_cpu_separation(dynamic_mix.separator, settings):
             # For GPU separation, do separation in separate process.
             # Otherwise, GPU memory is not automatically freed afterwards
             process_eval = Process(target=separator.separate_into_parts,

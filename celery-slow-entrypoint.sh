@@ -2,6 +2,9 @@
 
 CELERY_SLOW_QUEUE_CONCURRENCY="${CELERY_SLOW_QUEUE_CONCURRENCY:-1}"
 
+echo "Running ldconfig..."
+ldconfig
+
 echo "Starting Celery (slow)"
 
 mkdir -p celery
