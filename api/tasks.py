@@ -27,6 +27,9 @@ This module defines various Celery tasks used for Spleeter Web.
 def get_separator(separator: str, separator_args: Dict, bitrate: int, settings):
     """Returns separator object for corresponding source separation model."""
     if separator == 'spleeter':
+        if settings.CPU_SEPARATION_SPLEETER:
+            import os
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         return SpleeterSeparator(settings.CPU_SEPARATION_SPLEETER, bitrate)
     elif separator == 'd3net':
         return D3NetSeparator(settings.CPU_SEPARATION_D3NET, bitrate)
